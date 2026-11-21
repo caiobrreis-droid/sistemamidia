@@ -75,6 +75,8 @@ export async function migrate() {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
     CREATE INDEX IF NOT EXISTS cards_column_idx ON cards (column_id, position);
+    -- Per-user preferences (e.g. personal background). Not shared with the team.
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS prefs JSONB NOT NULL DEFAULT '{}'::jsonb;
   `)
 
   for (const [i, [cid, title, hint, accent]] of COLUMNS.entries()) {

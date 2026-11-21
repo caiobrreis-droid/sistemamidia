@@ -9,6 +9,24 @@ export interface Member {
   color: string
   email?: string
   isAdmin?: boolean
+  /** Only present on the logged-in user. */
+  prefs?: Prefs
+}
+
+export type BackgroundSource =
+  | { kind: 'preset'; id: string }
+  | { kind: 'color'; color: string }
+  | { kind: 'image'; url: string }
+
+export interface Background {
+  source: BackgroundSource
+  /** 0–0.9: dark veil over the background so cards stay readable. */
+  dim: number
+  blur: boolean
+}
+
+export interface Prefs {
+  background?: Background
 }
 
 export interface ChecklistItem {

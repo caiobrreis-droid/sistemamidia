@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react'
-import { KeyRound, LogOut, Users } from 'lucide-react'
+import { KeyRound, LogOut, Palette, Users } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { api } from '../api'
 import type { Member } from '../types'
@@ -8,11 +8,12 @@ import { Avatar } from './Avatar'
 interface Props {
   user: Member
   onTeam: () => void
+  onTheme: () => void
   onLogout: () => void
   onError: (msg: string) => void
 }
 
-export function UserMenu({ user, onTeam, onLogout, onError }: Props) {
+export function UserMenu({ user, onTeam, onTheme, onLogout, onError }: Props) {
   const [open, setOpen] = useState(false)
   const [pwd, setPwd] = useState<{ current: string; next: string } | null>(null)
   const [saved, setSaved] = useState(false)
@@ -66,6 +67,9 @@ export function UserMenu({ user, onTeam, onLogout, onError }: Props) {
             </div>
             <div className="h-px bg-white/[0.06]" />
             <div className="pt-1.5">
+              <button className={item} onClick={() => (setOpen(false), onTheme())}>
+                <Palette className="size-4 text-zinc-500" /> Plano de fundo
+              </button>
               <button className={item} onClick={() => (setOpen(false), onTeam())}>
                 <Users className="size-4 text-zinc-500" /> Equipe
               </button>

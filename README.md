@@ -46,6 +46,7 @@ Variáveis do `web`: `DATABASE_URL=${{Postgres.DATABASE_URL}}`, `NODE_ENV=produc
 - Briefing, checklist, conversa e troca de etapa
 - Filtros por mandato, pessoa e busca; indicadores no topo
 - Equipe: administradores cadastram e removem pessoas; cada um troca a própria senha
+- Plano de fundo pessoal (avatar → Plano de fundo): fundos prontos, cor sólida, foto própria, escurecer e desfocar; salvo por usuário
 - Atalhos: `/` busca, `N` nova pauta, `Esc` fecha
 
 ## App instalável e notificações

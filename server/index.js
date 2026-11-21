@@ -82,7 +82,7 @@ app.post('/api/login', wrap(async (req, res) => {
   await pool.query(`INSERT INTO sessions (token, user_id, expires_at) VALUES ($1, $2, now() + interval '${SESSION_DAYS} days')`, [token, user.id])
   await pool.query('DELETE FROM sessions WHERE expires_at < now()')
   setSessionCookie(res, token, SESSION_DAYS * 86400)
-  res.json({ user: publicUser(user) })
+  res.json({ user: { ...publicUser(user), prefs: user.prefs || {} } })
 }))
 
 app.post('/api/logout', wrap(async (req, res) => {
@@ -92,7 +92,16 @@ app.post('/api/logout', wrap(async (req, res) => {
   res.json({ ok: true })
 }))
 
-app.get('/api/me', auth, (req, res) => res.json({ user: publicUser(req.user) }))
+app.get('/api/me', auth, (req, res) => res.json({ user: { ...publicUser(req.user), prefs: req.user.prefs || {} } }))
+
+// Personal preferences: only the owner reads them (they can hold a large background image).
+app.put('/api/me/prefs', auth, wrap(async (req, res) => {
+  const prefs = req.body?.prefs
+  if (!prefs || typeof prefs !== 'object' || Array.isArray(prefs)) return res.status(400).json({ error: 'Preferências inválidas' })
+  if (JSON.stringify(prefs).length > 4_000_000) return res.status(413).json({ error: 'Imagem muito grande. Use uma imagem menor.' })
+  await pool.query('UPDATE users SET prefs = $2 WHERE id = $1', [req.user.id, prefs])
+  res.json({ ok: true })
+}))
 
 app.get('/api/events', auth, (req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive', 'X-Accel-Buffering': 'no' })

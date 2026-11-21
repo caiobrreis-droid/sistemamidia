@@ -7,11 +7,14 @@ import { CardModal } from './components/CardModal'
 import { Avatar } from './components/Avatar'
 import { TeamModal } from './components/TeamModal'
 import { AppActions } from './components/AppActions'
+import { ThemePanel } from './components/ThemePanel'
+import { Backdrop, DEFAULT_BACKGROUND } from './backgrounds'
+import { api } from './api'
 import { UserMenu } from './components/UserMenu'
 import { useToast } from './components/Toast'
 import { MANDATOS } from './data/constants'
 import { uid, useBoard } from './store'
-import type { Card, Mandato, Member } from './types'
+import type { Background, Card, Mandato, Member } from './types'
 import { dueStatus } from './utils'
 
 type Filtro = 'TODOS' | Mandato
@@ -21,6 +24,17 @@ export function Workspace({ user, onLogout }: { user: Member; onLogout: () => vo
   const { state, dispatch, connected, reload } = useBoard(toast)
   const CURRENT_USER = user.id
   const [teamOpen, setTeamOpen] = useState(false)
+  const [themeOpen, setThemeOpen] = useState(false)
+  const [bg, setBg] = useState<Background>(user.prefs?.background ?? DEFAULT_BACKGROUND)
+  const saveTimer = useRef<number | undefined>(undefined)
+  // Apply the background immediately; save it to the user's profile after a short pause.
+  const changeBg = useCallback((next: Background) => {
+    setBg(next)
+    clearTimeout(saveTimer.current)
+    saveTimer.current = window.setTimeout(() => {
+      api.savePrefs({ ...user.prefs, background: next }).catch((e: Error) => toast(e.message))
+    }, 600)
+  }, [user.prefs, toast])
   const [openId, setOpenId] = useState<string | null>(null)
   const [filtro, setFiltro] = useState<Filtro>('TODOS')
   const [query, setQuery] = useState('')
@@ -117,7 +131,8 @@ export function Workspace({ user, onLogout }: { user: Member; onLogout: () => vo
   const hasFilters = filtro !== 'TODOS' || people.length > 0 || !!query
 
   return (
-    <div className="aurora grain pt-safe flex h-full flex-col overflow-hidden">
+    <div className="grain pt-safe isolate flex h-full flex-col overflow-hidden">
+      <Backdrop bg={bg} />
       {/* Top navigation */}
       <nav className="flex items-center gap-2 px-4 pt-3 sm:gap-3 sm:px-8 sm:pt-5">
         <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
@@ -155,7 +170,7 @@ export function Workspace({ user, onLogout }: { user: Member; onLogout: () => vo
             className={clsx('hidden size-2 shrink-0 rounded-full sm:block', connected ? 'bg-emerald-400 shadow-[0_0_10px] shadow-emerald-400/60' : 'animate-pulse bg-amber-400')}
           />
           <div className="relative">
-            <UserMenu user={user} onTeam={() => setTeamOpen(true)} onLogout={onLogout} onError={toast} />
+            <UserMenu user={user} onTheme={() => setThemeOpen(true)} onTeam={() => setTeamOpen(true)} onLogout={onLogout} onError={toast} />
             {/* On phones the sync dot rides on the avatar. */}
             <span className={clsx('pointer-events-none absolute -right-0.5 -bottom-0.5 size-2.5 rounded-full ring-2 ring-ink-950 sm:hidden', connected ? 'bg-emerald-400' : 'animate-pulse bg-amber-400')} />
           </div>
@@ -253,6 +268,7 @@ export function Workspace({ user, onLogout }: { user: Member; onLogout: () => vo
       <AnimatePresence>
         {openCard && <CardModal key={openCard.id} card={openCard} state={state} currentUserId={CURRENT_USER} dispatch={dispatch} onClose={close} />}
       </AnimatePresence>
+      <AnimatePresence>{themeOpen && <ThemePanel bg={bg} onChange={changeBg} onClose={() => setThemeOpen(false)} onError={toast} />}</AnimatePresence>
       <AnimatePresence>{teamOpen && <TeamModal user={user} members={state.members} onClose={() => setTeamOpen(false)} onError={toast} onChanged={reload} />}</AnimatePresence>
     </div>
   )

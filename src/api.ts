@@ -1,4 +1,4 @@
-import type { BoardState, Card, Member } from './types'
+import type { BoardState, Card, Member, Prefs } from './types'
 
 /** Identifies this browser tab so we can ignore our own realtime echoes. */
 export const CLIENT_ID = Math.random().toString(36).slice(2)
@@ -32,5 +32,6 @@ export const api = {
   removeCard: (id: string) => req('DELETE', `/api/cards/${id}`),
   addUser: (u: { name: string; email: string; password: string; role: string; isAdmin: boolean }) => req<{ user: Member }>('POST', '/api/users', u),
   removeUser: (id: string) => req('DELETE', `/api/users/${id}`),
-  changePassword: (current: string, next: string) => req('PUT', '/api/me/password', { current, next }),
+  savePrefs: (prefs: Prefs) => req('PUT', '/api/me/prefs', { prefs }),
+  changePassword:(current: string, next: string) => req('PUT', '/api/me/password', { current, next }),
 }
