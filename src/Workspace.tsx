@@ -6,6 +6,7 @@ import { Board } from './components/Board'
 import { CardModal } from './components/CardModal'
 import { Avatar } from './components/Avatar'
 import { TeamModal } from './components/TeamModal'
+import { AppActions } from './components/AppActions'
 import { UserMenu } from './components/UserMenu'
 import { useToast } from './components/Toast'
 import { MANDATOS } from './data/constants'
@@ -84,6 +85,19 @@ export function Workspace({ user, onLogout }: { user: Member; onLogout: () => vo
     return () => window.removeEventListener('keydown', onKey)
   })
 
+  // Notifications link to /?card=<id>: open that card, on load or when the app is already open.
+  useEffect(() => {
+    const openFrom = (href: string) => {
+      const id = new URL(href, location.origin).searchParams.get('card')
+      if (id) setOpenId(id)
+    }
+    openFrom(location.href)
+    if (location.search) history.replaceState(null, '', location.pathname)
+    const onMsg = (e: MessageEvent) => e.data?.type === 'open' && openFrom(e.data.url)
+    navigator.serviceWorker?.addEventListener('message', onMsg)
+    return () => navigator.serviceWorker?.removeEventListener('message', onMsg)
+  }, [])
+
   const close = useCallback(() => setOpenId(null), [])
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite'
@@ -132,6 +146,7 @@ export function Workspace({ user, onLogout }: { user: Member; onLogout: () => vo
           <kbd className="hidden rounded bg-ink-950/10 px-1 text-[10px] sm:inline">N</kbd>
         </button>
 
+        <AppActions onError={toast} />
         <span
           title={connected ? 'Sincronizado em tempo real' : 'Reconectando…'}
           className={clsx('size-2 shrink-0 rounded-full', connected ? 'bg-emerald-400 shadow-[0_0_10px] shadow-emerald-400/60' : 'animate-pulse bg-amber-400')}

@@ -4,6 +4,11 @@ import { existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { hashPassword, id, migrate, pickColor, pool, verifyPassword } from './db.js'
+import { migratePush, notifyUsers, publicKey, removeSubscription, saveSubscription, stageMessage } from './push.js'
+
+const others = (ids, me) => (Array.isArray(ids) ? ids : []).filter((x) => x && x !== me)
+const firstName = (u) => String(u.name || '').split(' ')[0]
+const cardUrl = (cardId) => `/?card=${encodeURIComponent(cardId)}`
 
 const app = express()
 const PORT = Number(process.env.PORT) || 3000
@@ -155,19 +160,78 @@ app.post('/api/cards', auth, wrap(async (req, res) => {
   })
   broadcast(req.get('x-client-id'))
   res.status(201).json({ ok: true })
+  notifyUsers(others(card.memberIds, req.user.id), {
+    title: 'Você foi incluído em uma pauta',
+    body: `${card.title} · por ${firstName(req.user)}`,
+    url: cardUrl(card.id),
+    tag: `card-${card.id}`,
+  })
 }))
 
 app.put('/api/cards/:id', auth, wrap(async (req, res) => {
-  const { rowCount } = await pool.query('UPDATE cards SET data = $2, updated_at = now() WHERE id = $1', [req.params.id, cleanCard(req.body?.card)])
-  if (!rowCount) return res.status(404).json({ error: 'Cartão não encontrado' })
+  const next = cleanCard(req.body?.card)
+  const { rows } = await pool.query('SELECT data FROM cards WHERE id = $1', [req.params.id])
+  if (!rows[0]) return res.status(404).json({ error: 'Cartão não encontrado' })
+  await pool.query('UPDATE cards SET data = $2, updated_at = now() WHERE id = $1', [req.params.id, next])
   broadcast(req.get('x-client-id'))
   res.json({ ok: true })
+
+  // Notify people newly assigned, and assignees about new comments.
+  const prev = rows[0].data || {}
+  const url = cardUrl(req.params.id)
+  const tag = `card-${req.params.id}`
+  const added = others((next.memberIds || []).filter((m) => !(prev.memberIds || []).includes(m)), req.user.id)
+  notifyUsers(added, { title: 'Você foi incluído em uma pauta', body: `${next.title} · por ${firstName(req.user)}`, url, tag })
+  const newComments = (next.comments || []).slice((prev.comments || []).length)
+  const last = newComments.at(-1)
+  if (last) {
+    notifyUsers(others(next.memberIds, req.user.id).filter((m) => !added.includes(m)), {
+      title: `💬 ${firstName(req.user)} comentou`,
+      body: `${next.title}: ${String(last.text).slice(0, 140)}`,
+      url,
+      tag,
+    })
+  }
 }))
 
 app.post('/api/cards/:id/move', auth, wrap(async (req, res) => {
   const { toColumn, toIndex } = req.body || {}
+  const { rows } = await pool.query('SELECT column_id, data FROM cards WHERE id = $1', [req.params.id])
+  if (!rows[0]) return res.status(404).json({ error: 'Cartão não encontrado' })
   await tx((c) => place(c, req.params.id, String(toColumn), Number(toIndex) || 0))
   broadcast(req.get('x-client-id'))
+  res.json({ ok: true })
+
+  // Stage changed: tell the people responsible for the card.
+  if (rows[0].column_id !== String(toColumn)) {
+    const card = rows[0].data || {}
+    notifyUsers(others(card.memberIds, req.user.id), {
+      ...stageMessage(String(toColumn), card.title, firstName(req.user)),
+      url: cardUrl(req.params.id),
+      tag: `card-${req.params.id}`,
+    })
+  }
+}))
+
+// ---------- push notifications ----------
+app.get('/api/push/key', auth, (_req, res) => res.json({ key: publicKey() }))
+
+app.post('/api/push/subscribe', auth, wrap(async (req, res) => {
+  try {
+    await saveSubscription(req.user.id, req.body?.subscription)
+  } catch (e) {
+    return res.status(400).json({ error: e.message })
+  }
+  res.json({ ok: true })
+}))
+
+app.post('/api/push/unsubscribe', auth, wrap(async (req, res) => {
+  if (req.body?.endpoint) await removeSubscription(String(req.body.endpoint))
+  res.json({ ok: true })
+}))
+
+app.post('/api/push/test', auth, wrap(async (req, res) => {
+  await notifyUsers([req.user.id], { title: 'Notificações ativadas 🎉', body: 'Você vai ser avisado quando uma pauta chegar para você.', url: '/', tag: 'test' })
   res.json({ ok: true })
 }))
 
@@ -230,4 +294,5 @@ app.use((err, _req, res, _next) => {
 })
 
 await migrate()
+await migratePush()
 app.listen(PORT, () => console.log(`Estúdio Mídia rodando na porta ${PORT}`))

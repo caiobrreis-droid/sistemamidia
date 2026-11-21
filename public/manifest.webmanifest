@@ -1,0 +1,19 @@
+{
+  "name": "Estúdio Mídia · JC & AM",
+  "short_name": "Estúdio Mídia",
+  "description": "Quadro de produção da equipe de mídia do Vereador Julio Cezar e da Deputada Aurelina Medeiros.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#07080b",
+  "theme_color": "#0b0d12",
+  "lang": "pt-BR",
+  "categories": ["productivity", "business"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
