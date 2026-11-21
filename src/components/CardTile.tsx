@@ -41,7 +41,7 @@ export function CardTile({ card, members, done, onOpen, overlay }: Props & { ove
       onKeyDown={(e) => e.key === 'Enter' && onOpen(card.id)}
       tabIndex={0}
       className={clsx(
-        'group relative cursor-pointer overflow-hidden rounded-2xl bg-ink-800/90 ring-1 ring-white/[0.06] transition-[box-shadow,transform,background-color] duration-200 ease-out-quint',
+        'group relative cursor-pointer overflow-hidden rounded-2xl select-none [-webkit-touch-callout:none] bg-ink-800/90 ring-1 ring-white/[0.06] transition-[box-shadow,transform,background-color] duration-200 ease-out-quint',
         'hover:bg-ink-700/80 hover:ring-white/[0.12] focus-visible:ring-2 focus-visible:ring-emerald-400/60 focus-visible:outline-none',
         'shadow-[0_1px_0_0_rgb(255_255_255/0.04)_inset,0_8px_24px_-12px_rgb(0_0_0/0.6)]',
         overlay && 'rotate-[2deg] scale-[1.03] cursor-grabbing shadow-[0_30px_60px_-20px_rgb(0_0_0/0.8)] ring-white/20',

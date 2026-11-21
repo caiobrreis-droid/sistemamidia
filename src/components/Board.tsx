@@ -3,7 +3,8 @@ import {
   DndContext,
   DragOverlay,
   KeyboardSensor,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -11,6 +12,7 @@ import {
   type DragStartEvent,
 } from '@dnd-kit/core'
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
+import clsx from 'clsx'
 import { useState } from 'react'
 import type { BoardState, Card } from '../types'
 import { findColumnOf, type Action } from '../store'
@@ -30,7 +32,9 @@ interface Props {
 export function Board({ state, dispatch, visible, onOpen, onQuickAdd, onCancel }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null)
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
+    // On touch screens a swipe scrolls; press and hold a card to pick it up.
+    useSensor(TouchSensor, { activationConstraint: { delay: 220, tolerance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
 
@@ -78,7 +82,13 @@ export function Board({ state, dispatch, visible, onOpen, onQuickAdd, onCancel }
         onCancel()
       }}
     >
-      <div className="scroll-thin flex h-full items-start gap-4 overflow-x-auto px-6 pb-6 sm:px-8">
+      <div
+        className={clsx(
+          'scroll-thin flex h-full items-start gap-3 overflow-x-auto overscroll-x-contain px-4 pb-[calc(env(safe-area-inset-bottom)+96px)] sm:gap-4 sm:px-8 sm:pb-6',
+          // Phones: one column at a time, snapping into place (off while dragging so auto-scroll works).
+          !activeId && 'snap-x snap-mandatory scroll-px-4 sm:snap-none',
+        )}
+      >
         {state.columns.map((col) => {
           const cards = col.cardIds.map((id) => state.cards[id]).filter((c): c is Card => !!c)
           return (

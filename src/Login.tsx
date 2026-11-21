@@ -29,7 +29,7 @@ export function Login({ onLogin }: { onLogin: (u: Member) => void }) {
     'w-full rounded-2xl bg-white/[0.04] px-4 py-3.5 text-[14px] text-zinc-100 ring-1 ring-white/[0.08] transition-colors placeholder:text-zinc-600 focus:bg-white/[0.06] focus:ring-emerald-300/40 focus:outline-none'
 
   return (
-    <div className="aurora grain grid min-h-full place-items-center px-4 py-10">
+    <div className="aurora grain pt-safe pb-safe grid h-full place-items-center overflow-y-auto px-6 py-10">
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}

@@ -21,6 +21,30 @@ body,
   height: 100%;
 }
 
+/* Never let the page itself scroll sideways; the board scrolls inside its own container. */
+html,
+body {
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* iPhone notch / home-indicator safe areas (installed app uses a translucent status bar). */
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 body {
   @apply bg-ink-950 text-zinc-200 antialiased;
   font-feature-settings: 'cv11', 'ss01';

@@ -113,15 +113,18 @@ export function Workspace({ user, onLogout }: { user: Member; onLogout: () => vo
   }
   const openCard = openId ? state.cards[openId] : null
 
+  const newCard = () => setOpenId(quickAdd('planejar', 'Nova pauta'))
+  const hasFilters = filtro !== 'TODOS' || people.length > 0 || !!query
+
   return (
-    <div className="aurora grain flex h-full flex-col">
+    <div className="aurora grain pt-safe flex h-full flex-col overflow-hidden">
       {/* Top navigation */}
-      <nav className="flex items-center gap-4 px-6 pt-5 sm:px-8">
-        <div className="flex items-center gap-3">
-          <img src="/favicon.svg" alt="" className="size-9 rounded-xl ring-1 ring-white/10" />
-          <div className="leading-tight">
-            <p className="text-[13px] font-semibold tracking-tight text-white">Estúdio Mídia</p>
-            <p className="text-[11px] text-zinc-500">Julio Cezar · Aurelina Medeiros</p>
+      <nav className="flex items-center gap-2 px-4 pt-3 sm:gap-3 sm:px-8 sm:pt-5">
+        <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+          <img src="/favicon.svg" alt="" className="size-9 shrink-0 rounded-xl ring-1 ring-white/10" />
+          <div className="min-w-0 leading-tight">
+            <p className="truncate text-[14px] font-semibold tracking-tight text-white sm:text-[13px]">Estúdio Mídia</p>
+            <p className="hidden truncate text-[11px] text-zinc-500 sm:block">Julio Cezar · Aurelina Medeiros</p>
           </div>
         </div>
 
@@ -138,58 +141,75 @@ export function Workspace({ user, onLogout }: { user: Member; onLogout: () => vo
           <kbd className="rounded-md bg-white/[0.06] px-1.5 py-0.5 font-sans text-[10px] text-zinc-500">/</kbd>
         </label>
 
-        <button
-          onClick={() => setOpenId(quickAdd('planejar', 'Nova pauta'))}
-          className="ml-auto inline-flex h-10 items-center gap-2 rounded-full bg-white px-4 text-[13px] font-semibold text-ink-950 shadow-[0_8px_30px_-8px_rgb(255_255_255/0.4)] transition-transform hover:scale-[1.02] active:scale-[0.98] md:ml-0"
-        >
-          <Plus className="size-4" /> Nova pauta
-          <kbd className="hidden rounded bg-ink-950/10 px-1 text-[10px] sm:inline">N</kbd>
-        </button>
-
-        <AppActions onError={toast} />
-        <span
-          title={connected ? 'Sincronizado em tempo real' : 'Reconectando…'}
-          className={clsx('size-2 shrink-0 rounded-full', connected ? 'bg-emerald-400 shadow-[0_0_10px] shadow-emerald-400/60' : 'animate-pulse bg-amber-400')}
-        />
-        <UserMenu user={user} onTeam={() => setTeamOpen(true)} onLogout={onLogout} onError={toast} />
+        <div className="ml-auto flex shrink-0 items-center gap-2 md:ml-0">
+          <button
+            onClick={newCard}
+            className="hidden h-10 items-center gap-2 rounded-full bg-white px-4 text-[13px] font-semibold text-ink-950 shadow-[0_8px_30px_-8px_rgb(255_255_255/0.4)] transition-transform hover:scale-[1.02] active:scale-[0.98] sm:inline-flex"
+          >
+            <Plus className="size-4" /> Nova pauta
+            <kbd className="rounded bg-ink-950/10 px-1 text-[10px]">N</kbd>
+          </button>
+          <AppActions onError={toast} />
+          <span
+            title={connected ? 'Sincronizado em tempo real' : 'Reconectando…'}
+            className={clsx('hidden size-2 shrink-0 rounded-full sm:block', connected ? 'bg-emerald-400 shadow-[0_0_10px] shadow-emerald-400/60' : 'animate-pulse bg-amber-400')}
+          />
+          <div className="relative">
+            <UserMenu user={user} onTeam={() => setTeamOpen(true)} onLogout={onLogout} onError={toast} />
+            {/* On phones the sync dot rides on the avatar. */}
+            <span className={clsx('pointer-events-none absolute -right-0.5 -bottom-0.5 size-2.5 rounded-full ring-2 ring-ink-950 sm:hidden', connected ? 'bg-emerald-400' : 'animate-pulse bg-amber-400')} />
+          </div>
+        </div>
       </nav>
 
       {/* Hero */}
-      <header className="flex flex-wrap items-end gap-x-10 gap-y-5 px-6 pt-8 pb-6 sm:px-8">
+      <header className="space-y-4 px-4 pt-5 pb-4 sm:flex sm:flex-wrap sm:items-end sm:gap-x-10 sm:gap-y-5 sm:space-y-0 sm:px-8 sm:pt-8 sm:pb-6">
         <div>
           <p className="flex items-center gap-1.5 text-[12px] font-medium text-emerald-300/90">
             <Sparkles className="size-3.5" /> {greeting}, {user.name.split(' ')[0]}
           </p>
-          <h1 className="mt-1 font-display text-5xl leading-none tracking-tight text-white sm:text-6xl">
+          <h1 className="mt-1 font-display text-[40px] leading-none tracking-tight text-white sm:text-6xl">
             Quadro de <em className="bg-gradient-to-r from-emerald-300 to-sky-300 bg-clip-text text-transparent">produção</em>
           </h1>
         </div>
 
-        <dl className="flex gap-2">
-          <Stat label="Em andamento" value={stats.active} />
-          <Stat label="Vencem hoje" value={stats.today} icon={<CalendarClock className="size-3.5" />} tone={stats.today ? 'amber' : undefined} />
-          <Stat label="Atrasadas" value={stats.overdue} icon={<AlertTriangle className="size-3.5" />} tone={stats.overdue ? 'rose' : undefined} />
-          <Stat label="Publicadas" value={stats.done} tone="emerald" />
+        <dl className="grid grid-cols-4 gap-2 sm:flex">
+          <Stat label="Em andamento" short="Ativas" value={stats.active} />
+          <Stat label="Vencem hoje" short="Hoje" value={stats.today} icon={<CalendarClock className="size-3.5" />} tone={stats.today ? 'amber' : undefined} />
+          <Stat label="Atrasadas" short="Atraso" value={stats.overdue} icon={<AlertTriangle className="size-3.5" />} tone={stats.overdue ? 'rose' : undefined} />
+          <Stat label="Publicadas" short="Feitas" value={stats.done} tone="emerald" />
         </dl>
 
-        <div className="flex w-full flex-wrap items-center gap-3">
-          <div className="flex rounded-full bg-white/[0.04] p-1 ring-1 ring-white/[0.07]">
+        {/* Search on phones (desktop has it in the top bar). */}
+        <label className="flex h-11 items-center gap-2.5 rounded-2xl bg-white/[0.04] px-4 ring-1 ring-white/[0.07] focus-within:ring-white/15 md:hidden">
+          <Search className="size-4 text-zinc-500" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Buscar pautas…"
+            className="min-w-0 flex-1 bg-transparent text-[16px] text-zinc-200 placeholder:text-zinc-600 focus:outline-none"
+          />
+        </label>
+
+        <div className="no-scrollbar -mx-4 flex items-center gap-2 overflow-x-auto px-4 sm:mx-0 sm:w-full sm:flex-wrap sm:gap-3 sm:overflow-visible sm:px-0">
+          <div className="flex shrink-0 rounded-full bg-white/[0.04] p-1 ring-1 ring-white/[0.07]">
             {(['TODOS', 'JC', 'AM'] as Filtro[]).map((f) => (
               <button
                 key={f}
                 onClick={() => setFiltro(f)}
                 className={clsx(
-                  'flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[12.5px] font-medium transition-colors',
+                  'flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[12.5px] font-medium whitespace-nowrap transition-colors',
                   filtro === f ? 'bg-white/10 text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.08)]' : 'text-zinc-500 hover:text-zinc-200',
                 )}
               >
                 {f !== 'TODOS' && <span className={clsx('size-1.5 rounded-full', MANDATOS[f].dot)} />}
-                {f === 'TODOS' ? 'Todos os mandatos' : MANDATOS[f].label}
+                <span className="sm:hidden">{f === 'TODOS' ? 'Todos' : MANDATOS[f].short}</span>
+                <span className="hidden sm:inline">{f === 'TODOS' ? 'Todos os mandatos' : MANDATOS[f].label}</span>
               </button>
             ))}
           </div>
 
-          <div className="flex items-center gap-1 rounded-full bg-white/[0.04] p-1 ring-1 ring-white/[0.07]">
+          <div className="flex shrink-0 items-center gap-1 rounded-full bg-white/[0.04] p-1 ring-1 ring-white/[0.07]">
             {state.members.map((m) => {
               const on = people.includes(m.id)
               return (
@@ -206,10 +226,10 @@ export function Workspace({ user, onLogout }: { user: Member; onLogout: () => vo
             })}
           </div>
 
-          {(filtro !== 'TODOS' || people.length > 0 || query) && (
+          {hasFilters && (
             <button
               onClick={() => (setFiltro('TODOS'), setPeople([]), setQuery(''))}
-              className="text-[12.5px] text-zinc-500 underline-offset-4 hover:text-zinc-200 hover:underline"
+              className="shrink-0 px-1 text-[12.5px] whitespace-nowrap text-zinc-500 underline-offset-4 hover:text-zinc-200 hover:underline"
             >
               Limpar filtros
             </button>
@@ -221,6 +241,15 @@ export function Workspace({ user, onLogout }: { user: Member; onLogout: () => vo
         <Board state={state} dispatch={dispatch} visible={visible} onOpen={setOpenId} onQuickAdd={quickAdd} onCancel={reload} />
       </main>
 
+      {/* Phones: floating "new card" button above the home indicator. */}
+      <button
+        onClick={newCard}
+        aria-label="Nova pauta"
+        className="fixed right-5 bottom-[calc(env(safe-area-inset-bottom)+20px)] z-30 grid size-14 place-items-center rounded-full bg-white text-ink-950 shadow-[0_12px_40px_-8px_rgb(0_0_0/0.8),0_0_0_1px_rgb(255_255_255/0.2)] transition-transform active:scale-95 sm:hidden"
+      >
+        <Plus className="size-6" strokeWidth={2.4} />
+      </button>
+
       <AnimatePresence>
         {openCard && <CardModal key={openCard.id} card={openCard} state={state} currentUserId={CURRENT_USER} dispatch={dispatch} onClose={close} />}
       </AnimatePresence>
@@ -229,16 +258,17 @@ export function Workspace({ user, onLogout }: { user: Member; onLogout: () => vo
   )
 }
 
-function Stat({ label, value, icon, tone }: { label: string; value: number; icon?: React.ReactNode; tone?: 'amber' | 'rose' | 'emerald' }) {
+function Stat({ label, short, value, icon, tone }: { label: string; short: string; value: number; icon?: React.ReactNode; tone?: 'amber' | 'rose' | 'emerald' }) {
   return (
-    <div className="min-w-[104px] rounded-2xl bg-white/[0.03] px-4 py-3 ring-1 ring-white/[0.06]">
-      <dt className="flex items-center gap-1.5 text-[11px] text-zinc-500">
-        {icon}
-        {label}
+    <div className="min-w-0 rounded-2xl bg-white/[0.03] px-3 py-2.5 ring-1 ring-white/[0.06] sm:min-w-[104px] sm:px-4 sm:py-3">
+      <dt className="flex items-center gap-1.5 truncate text-[11px] text-zinc-500">
+        <span className="hidden sm:contents">{icon}</span>
+        <span className="sm:hidden">{short}</span>
+        <span className="hidden sm:inline">{label}</span>
       </dt>
       <dd
         className={clsx(
-          'mt-1 text-2xl font-semibold tracking-tight tabular-nums',
+          'mt-0.5 text-xl font-semibold tracking-tight tabular-nums sm:mt-1 sm:text-2xl',
           tone === 'amber' && 'text-amber-200',
           tone === 'rose' && 'text-rose-300',
           tone === 'emerald' && 'text-emerald-300',

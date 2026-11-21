@@ -61,7 +61,7 @@ export function CardModal({ card, state, currentUserId, dispatch, onClose }: Pro
 
   return (
     <motion.div
-      className="scroll-thin fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm sm:p-10"
+      className="scroll-thin fixed inset-0 z-50 flex items-start justify-center overflow-y-auto overscroll-contain bg-black/60 backdrop-blur-sm sm:p-10"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -72,14 +72,14 @@ export function CardModal({ card, state, currentUserId, dispatch, onClose }: Pro
         role="dialog"
         aria-modal="true"
         aria-label={card.title}
-        className="relative w-full max-w-4xl overflow-hidden rounded-[28px] bg-ink-900 ring-1 ring-white/10 shadow-[0_40px_120px_-30px_rgb(0_0_0/0.9)]"
+        className="relative min-h-full w-full max-w-4xl overflow-hidden bg-ink-900 sm:min-h-0 sm:rounded-[28px] sm:ring-1 sm:ring-white/10 shadow-[0_40px_120px_-30px_rgb(0_0_0/0.9)]"
         initial={{ opacity: 0, y: 16, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 8, scale: 0.98 }}
         transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
       >
         {/* Cover */}
-        <div className="group relative h-44 sm:h-52">
+        <div className="group relative h-[calc(env(safe-area-inset-top)+150px)] sm:h-52">
           {card.cover ? (
             <img src={card.cover} alt="" className="size-full object-cover" />
           ) : (
@@ -88,7 +88,7 @@ export function CardModal({ card, state, currentUserId, dispatch, onClose }: Pro
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-ink-900 via-ink-900/20 to-transparent" />
-          <div className="absolute top-4 right-4 flex items-center gap-2">
+          <div className="absolute top-[calc(env(safe-area-inset-top)+12px)] right-4 left-4 flex items-center justify-between gap-2 sm:left-auto sm:justify-end">
             <div className="flex items-center gap-1 rounded-full bg-black/40 p-1 backdrop-blur-md">
               {COVER_THEMES.map((t, i) => (
                 <button
@@ -107,23 +107,27 @@ export function CardModal({ card, state, currentUserId, dispatch, onClose }: Pro
               <X className="size-4" />
             </button>
           </div>
-          <div className="absolute bottom-3 left-6 right-6 sm:left-8">
+          <div className="absolute right-5 bottom-3 left-5 sm:right-8 sm:left-8">
             <p className="text-[11px] font-medium tracking-[0.14em] text-white/60 uppercase">
               em <span className="text-white/90">{column?.title}</span> · {card.formato}
             </p>
           </div>
         </div>
 
-        <div className="grid gap-8 px-6 pb-8 sm:px-8 md:grid-cols-[1fr_260px]">
+        <div className="px-5 pt-1 sm:px-8">
+          <textarea
+            value={card.title}
+            onChange={(e) => patch({ title: e.target.value.replace(/\n/g, ' ') })}
+            rows={1}
+            className="w-full resize-none overflow-hidden [field-sizing:content] bg-transparent font-display text-[30px] sm:text-[34px] leading-[1.1] text-white placeholder:text-zinc-600 focus:outline-none"
+            placeholder="Título"
+          />
+        </div>
+
+        <div className="grid gap-8 px-5 pt-6 pb-[calc(env(safe-area-inset-bottom)+32px)] sm:px-8 sm:pb-8 md:grid-cols-[1fr_260px]">
           {/* Main */}
           <div className="min-w-0 space-y-8">
-            <textarea
-              value={card.title}
-              onChange={(e) => patch({ title: e.target.value.replace(/\n/g, ' ') })}
-              rows={1}
-              className="w-full resize-none overflow-hidden [field-sizing:content] bg-transparent font-display text-[34px] leading-[1.1] text-white placeholder:text-zinc-600 focus:outline-none"
-              placeholder="Título"
-            />
+
 
             <Section icon={<Layers className="size-4" />} title="Briefing">
               <textarea
@@ -211,9 +215,9 @@ export function CardModal({ card, state, currentUserId, dispatch, onClose }: Pro
           </div>
 
           {/* Sidebar */}
-          <aside className="space-y-6 md:pt-2">
+          <aside className="order-first space-y-6 rounded-3xl bg-white/[0.02] p-4 ring-1 ring-white/[0.05] md:order-none md:rounded-none md:bg-transparent md:p-0 md:pt-2 md:ring-0">
             <Field label="Etapa">
-              <div className="grid gap-1">
+              <div className="grid grid-cols-2 gap-1 md:grid-cols-1">
                 {state.columns.map((col) => (
                   <button
                     key={col.id}
@@ -273,7 +277,7 @@ export function CardModal({ card, state, currentUserId, dispatch, onClose }: Pro
             </Field>
 
             <Field label="Responsáveis" icon={<Users className="size-3.5" />}>
-              <div className="grid gap-1">
+              <div className="grid grid-cols-2 gap-1 md:grid-cols-1">
                 {state.members.map((m) => {
                   const on = card.memberIds.includes(m.id)
                   return (

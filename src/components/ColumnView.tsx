@@ -37,7 +37,7 @@ export function ColumnView({ column, cards, total, members, onOpen, onQuickAdd }
   return (
     <section
       className={clsx(
-        'flex max-h-full w-[300px] shrink-0 flex-col rounded-3xl bg-ink-900/60 ring-1 ring-white/[0.05] backdrop-blur-xl transition-colors duration-200',
+        'flex max-h-full w-[calc(100vw-48px)] max-w-[320px] shrink-0 snap-start flex-col rounded-3xl sm:w-[300px] bg-ink-900/60 ring-1 ring-white/[0.05] backdrop-blur-xl transition-colors duration-200',
         isOver && 'bg-ink-850/80 ring-white/[0.1]',
       )}
     >

@@ -55,7 +55,7 @@ export function TeamModal({ user, members, onClose, onError, onChanged }: Props)
 
   return (
     <motion.div
-      className="scroll-thin fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm sm:p-10"
+      className="scroll-thin fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 p-4 pt-[calc(env(safe-area-inset-top)+16px)] pb-[calc(env(safe-area-inset-bottom)+16px)] backdrop-blur-sm sm:p-10"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
