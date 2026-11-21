@@ -3,32 +3,47 @@
 Quadro de produção da equipe de mídia do **Vereador Julio Cezar** e da **Deputada Aurelina Medeiros**.
 Fluxo: Planejar → Executar → Aprovar → Finalizar → Concluído.
 
-## Rodar
+## Rodar localmente
+
+Precisa de um PostgreSQL. Crie um arquivo `.env` (já está no `.gitignore`) com:
+
+```
+DATABASE_URL=postgres://usuario:senha@localhost:5432/sistemamidia
+ADMIN_EMAIL=voce@exemplo.com
+ADMIN_PASSWORD=uma-senha
+ADMIN_NAME=Seu Nome
+```
+
+Em dois terminais:
 
 ```bash
-npm install
+npm run server
+```
+
+```bash
 npm run dev
 ```
 
-Abra http://localhost:5173.
+Abra http://localhost:5173. O administrador é criado no primeiro boot, quando o banco ainda não tem usuários.
+
+## Produção (Railway)
+
+Projeto `sistemamidia` no Railway, com o serviço `web` (este repositório, deploy a cada push na `main`) e o `Postgres`.
+
+Variáveis do `web`: `DATABASE_URL=${{Postgres.DATABASE_URL}}`, `NODE_ENV=production`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME`.
 
 ## Stack
 
-- React 19 + TypeScript + Vite
-- Tailwind CSS v4
-- dnd-kit (arrastar e soltar, com suporte a teclado)
-- Motion (animações), lucide-react (ícones)
+- React 19 + TypeScript + Vite, Tailwind CSS v4, dnd-kit, Motion
+- Node + Express + PostgreSQL (`server/`)
+- Login por e-mail e senha (scrypt), sessão em cookie httpOnly
+- Tempo real via Server-Sent Events: o que um muda aparece para todos
 
 ## O que já tem
 
 - Quadro com 5 etapas e arrastar entre colunas
-- Cartões com capa (gradiente ou imagem enviada), mandato (JC / AM / Ambos), formato, prioridade, datas, responsáveis
-- Modal com briefing, checklist com progresso, conversa e troca de etapa
-- Filtros por mandato, por pessoa e busca
-- Indicadores: em andamento, vencem hoje, atrasadas, publicadas
+- Cartões com capa, mandato (JC / AM / Ambos), formato, prioridade, datas e responsáveis
+- Briefing, checklist, conversa e troca de etapa
+- Filtros por mandato, pessoa e busca; indicadores no topo
+- Equipe: administradores cadastram e removem pessoas; cada um troca a própria senha
 - Atalhos: `/` busca, `N` nova pauta, `Esc` fecha
-
-## Estado atual
-
-Os dados ficam no `localStorage` do navegador (`src/store.ts`). O próximo passo é um backend
-(Node + PostgreSQL) com login para a equipe compartilhar o mesmo quadro.

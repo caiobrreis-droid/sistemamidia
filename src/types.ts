@@ -7,6 +7,8 @@ export interface Member {
   name: string
   role: string
   color: string
+  email?: string
+  isAdmin?: boolean
 }
 
 export interface ChecklistItem {

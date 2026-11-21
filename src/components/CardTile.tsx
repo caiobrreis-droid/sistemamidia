@@ -3,7 +3,7 @@ import { CSS } from '@dnd-kit/utilities'
 import clsx from 'clsx'
 import { AlignLeft, CheckSquare, Clock, Flame, MessageCircle } from 'lucide-react'
 import type { Card, Member } from '../types'
-import { COVER_THEMES, MANDATOS } from '../data/seed'
+import { COVER_THEMES, MANDATOS } from '../data/constants'
 import { DUE_STYLES, dueStatus, formatRange } from '../utils'
 import { AvatarStack } from './Avatar'
 

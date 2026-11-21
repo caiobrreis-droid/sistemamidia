@@ -23,9 +23,11 @@ interface Props {
   visible: (card: Card) => boolean
   onOpen: (id: string) => void
   onQuickAdd: (columnId: string, title: string) => void
+  /** Called when a drag is cancelled, to restore the server's order. */
+  onCancel: () => void
 }
 
-export function Board({ state, dispatch, visible, onOpen, onQuickAdd }: Props) {
+export function Board({ state, dispatch, visible, onOpen, onQuickAdd, onCancel }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null)
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -49,14 +51,17 @@ export function Board({ state, dispatch, visible, onOpen, onQuickAdd }: Props) {
     const from = findColumnOf(state, String(active.id))
     const to = target(String(over.id))
     if (!from || !to || from.id === to.columnId) return
-    dispatch({ type: 'move', cardId: String(active.id), toColumn: to.columnId, toIndex: to.index })
+    dispatch({ type: 'move', cardId: String(active.id), toColumn: to.columnId, toIndex: to.index, local: true })
   }
 
+  // Persist the final position (the card may already have changed column during onDragOver).
   const onDragEnd = ({ active, over }: DragEndEvent) => {
     setActiveId(null)
-    if (!over || active.id === over.id) return
-    const to = target(String(over.id))
-    if (to) dispatch({ type: 'move', cardId: String(active.id), toColumn: to.columnId, toIndex: to.index })
+    const cardId = String(active.id)
+    const to = over && over.id !== active.id ? target(String(over.id)) : null
+    const current = findColumnOf(state, cardId)
+    if (to) dispatch({ type: 'move', cardId, toColumn: to.columnId, toIndex: to.index })
+    else if (current) dispatch({ type: 'move', cardId, toColumn: current.id, toIndex: current.cardIds.indexOf(cardId) })
   }
 
   const active = activeId ? state.cards[activeId] : null
@@ -68,7 +73,10 @@ export function Board({ state, dispatch, visible, onOpen, onQuickAdd }: Props) {
       onDragStart={onDragStart}
       onDragOver={onDragOver}
       onDragEnd={onDragEnd}
-      onDragCancel={() => setActiveId(null)}
+      onDragCancel={() => {
+        setActiveId(null)
+        onCancel()
+      }}
     >
       <div className="scroll-thin flex h-full items-start gap-4 overflow-x-auto px-6 pb-6 sm:px-8">
         {state.columns.map((col) => {
